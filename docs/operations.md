@@ -19,8 +19,6 @@ This section provides detailed information about each operation, including the e
 
 ### Subscribe RPC Operation
 
-
-
 **Input Parameters**
 
 The following table lists the input parameters required for this operation:
@@ -31,15 +29,14 @@ The following table lists the input parameters required for this operation:
 | replay_preset | TYPE_ENUM |
 | num_requested | TYPE_INT32 |
 | replay_id | TYPE_BYTES |
-| auth_refresh | TYPE_STRING |
+
 
 **Output Parameters**
 
 The following table lists the output parameters returned by this operation:
 
-| Parameter Name   | Proto Type   |
-|------------------|--------------|
-| latest_replay_id | TYPE_BYTES |
-| rpc_id | TYPE_STRING |
-| pending_num_requested | TYPE_INT32 |
-| events | TYPE_MESSAGE |
+| Parameter Name | Proto Type   |
+|---------------|--------------|
+| event         | TYPE_MESSAGE |
+| decodedPayload | TYPE_JSON    |
+| replayId      | TYPE_BYTES   |

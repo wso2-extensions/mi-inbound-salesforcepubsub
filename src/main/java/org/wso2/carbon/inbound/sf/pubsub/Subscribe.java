@@ -60,7 +60,7 @@ import static org.wso2.carbon.inbound.sf.pubsub.SFConstants.EVENT;
  */
 public class Subscribe {
     private static final Logger LOGGER = Logger.getLogger(Subscribe.class.getName());
-    private static final long FETCH_INTERVAL_SECONDS = 10;
+    private static final long FETCH_INTERVAL_SECONDS = 1;
     private static final long RESOURCE_EXHAUSTED_BACKOFF_SECONDS = 300;
     private static final int MAX_CONSECUTIVE_EMPTY_RESPONSES = 5;
     private final String topicName;
@@ -120,8 +120,6 @@ public class Subscribe {
                         List<ConsumerEvent> eventsList = response.getEventsList();
                         if (!eventsList.isEmpty()) {
                             consecutiveEmptyResponses = 0;
-                            LOGGER.info("Received " + eventsList.size() + " events from topic: " + topicName);
-                            // Update replay ID for next request
                             replayId = response.getLatestReplayId();
                             pendingRequests = response.getPendingNumRequested();
                             // Process the events
@@ -269,11 +267,14 @@ public class Subscribe {
                     LOGGER.info("Attempting to restart subscription after resource exhaustion");
                     // Restart the subscription with a new stream
                     subscribe(context, asyncStub);
+                    return true;
                 } catch (Exception e) {
                     isActive.set(false);
+                    return false;
                 }
             } else {
                 LOGGER.warning("Subscription is no longer active, skipping recovery attempt.");
+                return false;
             }
         }, RESOURCE_EXHAUSTED_BACKOFF_SECONDS, TimeUnit.SECONDS);
         return true;
@@ -289,12 +290,10 @@ public class Subscribe {
         FetchRequest.Builder builder = FetchRequest.newBuilder()
                 .setTopicName(this.topicName)
                 .setNumRequested(numEvents);
-
         if (replayId != null) {
             builder.setReplayId(replayId);
             builder.setReplayPreset(ReplayPreset.forNumber(ReplayPreset.CUSTOM_VALUE));
         }
-
         return builder.build();
     }
 

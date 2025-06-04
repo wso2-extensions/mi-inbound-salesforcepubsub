@@ -91,7 +91,7 @@
                             "displayName": "Polling interval",
                             "inputType": "string",
                             "required": true,
-                            "helpTip": "The polling interval for the Salesforce pubsub inbound endpoint in milliseconds.",
+                            "helpTip": "The polling interval for the Salesforce pub/sub inbound endpoint in milliseconds.",
                             "defaultValue": "100"
                         }
                     },
@@ -152,56 +152,6 @@
                                         "required": true,
                                         "helpTip": "The port for the root URL."
                                     }
-                                },
-                                {
-                                    "type": "attribute",
-                                    "value": {
-                                        "name": "isHeadersAvailable",
-                                        "displayName": "Headers Available",
-                                        "inputType": "checkbox",
-                                        "defaultValue": "",
-                                        "required": "false",
-                                        "helpTip": "Tick the checkbox to add headers to the connection."
-                                    }
-                                },
-                                {
-                                    "type": "table",
-                                    "value": {
-                                        "name": "headers",
-                                        "displayName": "Headers",
-                                        "tableKey": "propertyName",
-                                        "tableValue": "propertyValue",
-                                        "helpTip": "Add headers to the connection in JSON format.",
-                                        "enableCondition": [
-                                            {
-                                                "isHeadersAvailable": "true"
-                                            }
-                                        ],
-                                        "elements": [
-                                            {
-                                                "type": "attribute",
-                                                "value": {
-                                                    "name": "propertyName",
-                                                    "displayName": "Header Name",
-                                                    "inputType": "string",
-                                                    "defaultValue": "",
-                                                    "required": "true",
-                                                    "helpTip": "The name of the header."
-                                                }
-                                            },
-                                            {
-                                                "type": "attribute",
-                                                "value": {
-                                                    "name": "propertyValue",
-                                                    "displayName": "Header Value",
-                                                    "inputType": "string",
-                                                    "defaultValue": "",
-                                                    "required": "true",
-                                                    "helpTip": "The value of the header."
-                                                }
-                                            }
-                                        ]
-                                    }
                                 }
                             ]
                         }
@@ -228,11 +178,11 @@
                                         "name": "authType",
                                         "displayName": "Authentication Type",
                                         "inputType": "combo",
-                                        "defaultValue": "No Auth",
+                                        "defaultValue": "None",
                                         "required": "true",
                                         "helpTip": "The authentication type for the connection.",
                                         "comboValues": [
-                                            "No Auth",
+                                            "None",
                                             "Basic Auth"
                                         ]
                                     }
@@ -284,6 +234,45 @@
                                             }
                                         ]
                                     }
+                                },
+                                {
+                                    "type": "table",
+                                    "value": {
+                                        "name": "headers",
+                                        "displayName": "Headers",
+                                        "tableKey": "propertyName",
+                                        "tableValue": "propertyValue",
+                                        "helpTip": "Add headers to the connection in JSON format.",
+                                        "enableCondition": [
+                                            {
+                                                "authType": "None"
+                                            }
+                                        ],
+                                        "elements": [
+                                            {
+                                                "type": "attribute",
+                                                "value": {
+                                                    "name": "propertyName",
+                                                    "displayName": "Header Name",
+                                                    "inputType": "string",
+                                                    "defaultValue": "",
+                                                    "required": "true",
+                                                    "helpTip": "The name of the header."
+                                                }
+                                            },
+                                            {
+                                                "type": "attribute",
+                                                "value": {
+                                                    "name": "propertyValue",
+                                                    "displayName": "Header Value",
+                                                    "inputType": "string",
+                                                    "defaultValue": "",
+                                                    "required": "true",
+                                                    "helpTip": "The value of the header."
+                                                }
+                                            }
+                                        ]
+                                    }
                                 }
                             ]
                         }
@@ -294,7 +283,7 @@
         {
             "type": "attributeGroup",
             "value": {
-                "groupName": "Operation Configuration",
+                "groupName": "Subscribe Operation Configuration",
                 "elements": [
                     {
                         "type": "attribute",
@@ -320,7 +309,7 @@
                             "inputType": "string",
                             "defaultValue": "",
                             "required": "true",
-                            "helpTip": "topic_name",
+                            "helpTip": "A topic for subscription",
                             "enableCondition": [
                                 {
                                     "rpcMethod": "Subscribe"
@@ -336,7 +325,7 @@
                             "inputType": "combo",
                             "defaultValue": "LATEST",
                             "required": "true",
-                            "helpTip": "replay_preset",
+                            "helpTip": "Supported subscription replay start values",
                             "comboValues": [
                                 "LATEST",
                                 "EARLIEST",
@@ -357,7 +346,7 @@
                             "inputType": "string",
                             "defaultValue": "",
                             "required": "false",
-                            "helpTip": "Replay Id",
+                            "helpTip": "Replay ID of the event",
                             "enableCondition": ["AND",
                                 {"rpcMethod": "Subscribe"},
                                 {
