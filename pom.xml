@@ -53,7 +53,6 @@
             <artifactId>synapse-commons</artifactId>
             <version>${synapse.version}</version>
         </dependency>
-
         <!-- Carbon Mediation Core -->
         <dependency>
             <groupId>org.wso2.carbon.mediation</groupId>
@@ -171,7 +170,6 @@
                 <configuration>
                     <instructions>
                         <_nouse.jdk.javac>true</_nouse.jdk.javac>
-                        <!-- Explicitly Import Packages (critical for OSGi) -->
                         <Import-Package>
                             io.grpc.*,
                             com.google.protobuf.*,
@@ -179,9 +177,8 @@
                             org.apache.synapse.*,
                             *
                         </Import-Package>
-
-                        <!-- Embed all required compile/runtime dependencies -->
                         <Embed-Dependency>
+                            perfmark-api;scope=compile|runtime,
                             protobuf-java;scope=compile|runtime,
                             grpc-protobuf;scope=compile|runtime,
                             grpc-stub;scope=compile|runtime,
@@ -189,8 +186,6 @@
                             grpc-core;scope=compile|runtime,
                             grpc-netty-shaded;scope=compile|runtime
                         </Embed-Dependency>
-
-                        <!-- Merge split packages explicitly -->
                         <Export-Package>
                             !com.google.protobuf.*,
                             io.grpc.*;-split-package:=merge-first
