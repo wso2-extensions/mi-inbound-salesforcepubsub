@@ -22,8 +22,10 @@ import io.grpc.ManagedChannel;
 import io.grpc.Metadata;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import org.apache.synapse.MessageContext;
+import org.apache.synapse.config.Entry;
 import org.apache.synapse.core.SynapseEnvironment;
 import org.apache.synapse.core.axis2.Axis2MessageContext;
+import org.apache.synapse.registry.AbstractRegistry;
 import org.apache.synapse.util.InlineExpressionUtil;
 import org.json.JSONArray;
 import org.wso2.carbon.connector.core.ConnectException;
@@ -33,13 +35,31 @@ import org.wso2.carbon.inbound.sf.pubsub.com.salesforce.eventbus.protobuf.Replay
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Base64;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.logging.Logger;
 
 import java.util.concurrent.TimeUnit;
 
-import static org.wso2.carbon.inbound.sf.pubsub.SFConstants.*;
+import static org.wso2.carbon.inbound.sf.pubsub.SFConstants.DEVELOPER_NAME;
+import static org.wso2.carbon.inbound.sf.pubsub.SFConstants.MANAGE_SUBSCRIPTION;
+import static org.wso2.carbon.inbound.sf.pubsub.SFConstants.NUM_REQUESTED;
+import static org.wso2.carbon.inbound.sf.pubsub.SFConstants.PORT_NUMBER;
+import static org.wso2.carbon.inbound.sf.pubsub.SFConstants.REGISTRY_PATH;
+import static org.wso2.carbon.inbound.sf.pubsub.SFConstants.REPLAY_ID;
+import static org.wso2.carbon.inbound.sf.pubsub.SFConstants.REPLAY_ID_PREFIX;
+import static org.wso2.carbon.inbound.sf.pubsub.SFConstants.REPLAY_PRESET;
+import static org.wso2.carbon.inbound.sf.pubsub.SFConstants.RETRIEVE_WITH_LAST_REPLAY_ID;
+import static org.wso2.carbon.inbound.sf.pubsub.SFConstants.RPC_METHOD;
+import static org.wso2.carbon.inbound.sf.pubsub.SFConstants.SF_HEADERS;
+import static org.wso2.carbon.inbound.sf.pubsub.SFConstants.SF_PASSWORD;
+import static org.wso2.carbon.inbound.sf.pubsub.SFConstants.SF_SECURITY_TOKEN;
+import static org.wso2.carbon.inbound.sf.pubsub.SFConstants.SF_USERNAME;
+import static org.wso2.carbon.inbound.sf.pubsub.SFConstants.SUBSCRIBE;
+import static org.wso2.carbon.inbound.sf.pubsub.SFConstants.SUBSCRIPTION_ID;
+import static org.wso2.carbon.inbound.sf.pubsub.SFConstants.TLS_ENABLED;
+import static org.wso2.carbon.inbound.sf.pubsub.SFConstants.TOPIC_NAME;
 
 /**
  * This class is responsible for managing the inbound connection to Salesforce Pub/Sub API.
@@ -65,14 +85,19 @@ public class SFPubSubInboundFactory  extends GenericPollingConsumer {
     private final String rpcMethod;
     private static boolean nextPolling = false;
     private PubSubGrpc.PubSubBlockingStub blockingStub = null;
-    public SFPubSubInboundFactory(Properties properties, String name, SynapseEnvironment synapseEnvironment, long scanInterval, String injectingSeq, String onErrorSeq, boolean coordination, boolean sequential) {
+    private final boolean isRetrieveWithLastReplayId;
+
+    private final AbstractRegistry registry;
+    public SFPubSubInboundFactory(Properties properties, String name, SynapseEnvironment synapseEnvironment,
+                                  long scanInterval, String injectingSeq, String onErrorSeq, boolean coordination,
+                                  boolean sequential) {
         super(properties, name, synapseEnvironment, scanInterval, injectingSeq, onErrorSeq, coordination, sequential);
         this.topicName = properties.getProperty(TOPIC_NAME);
         this.replayPreset = getReplayPresetType(properties.getProperty(REPLAY_PRESET));
         this.numRequested = TypeConverter.convert(properties.getProperty(NUM_REQUESTED), Integer.class);
         this.replayId = properties.getProperty(REPLAY_ID) == null? null :
                 ByteString.copyFrom(TypeConverter.convert(properties.getProperty(REPLAY_ID), byte[].class));
-        this.server = properties.getProperty(SF_SERVER);
+        this.server = properties.getProperty(SFConstants.SF_SERVER);
         this.port = properties.getProperty(PORT_NUMBER);
         this.headers = properties.getProperty(SF_HEADERS);
         this.username = properties.getProperty(SF_USERNAME);
@@ -82,6 +107,9 @@ public class SFPubSubInboundFactory  extends GenericPollingConsumer {
         this.rpcMethod = properties.getProperty(RPC_METHOD);
         this.subscription_id = properties.getProperty(SUBSCRIPTION_ID);
         this.developer_name = properties.getProperty(DEVELOPER_NAME);
+        this.isRetrieveWithLastReplayId = Boolean.parseBoolean(properties.getProperty(RETRIEVE_WITH_LAST_REPLAY_ID));
+        this.registry = (AbstractRegistry) synapseEnvironment.getSynapseConfiguration().getRegistry();
+
     }
 
     @Override
@@ -89,7 +117,21 @@ public class SFPubSubInboundFactory  extends GenericPollingConsumer {
         if(nextPolling || (channel != null && (!channel.isTerminated() || !channel.isShutdown()))) {
             return null;
         }
-
+        String registryPath = REGISTRY_PATH;
+        if (isRetrieveWithLastReplayId) {
+            String resourcePath = registryPath + "/" + name;
+                Object registryResource = registry.getResource(new Entry(resourcePath), null);
+                if (registryResource != null) {
+                    Properties resourceProperties = registry.getResourceProperties(resourcePath);
+                    assert resourceProperties != null;
+                    String lastReplayId = resourceProperties.getProperty(REPLAY_ID_PREFIX);
+                    if (lastReplayId != null) {
+                        byte[] decodedBytes = Base64.getDecoder().decode(lastReplayId);
+                        replayId = ByteString.copyFrom(decodedBytes);
+                        replayPreset = ReplayPreset.CUSTOM_VALUE;
+                    }
+                }
+        }
         MessageContext msgCtx = createMessageContext();
         int portInt = Integer.parseInt(port);
         String target = server + ":" + portInt;
@@ -128,7 +170,8 @@ public class SFPubSubInboundFactory  extends GenericPollingConsumer {
         if (rpcMethod.equals(SUBSCRIBE)) {
             LOGGER.info("gRPC subscribe method is called with topic: " + topicName);
             Subscribe subscribe = new Subscribe(topicName, replayPreset, numRequested, replayId,
-                    synapseEnvironment, injectingSeq, sequential, blockingStub);
+                    synapseEnvironment, injectingSeq, sequential, blockingStub, registryPath, name,
+                    isRetrieveWithLastReplayId);
             subscribe.subscribe(msgCtx, asyncStub);
             nextPolling = subscribe.isActive();
             replayId = subscribe.getReplayId();

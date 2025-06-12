@@ -330,6 +330,7 @@
                                 "LATEST",
                                 "EARLIEST",
                                 "CUSTOM"
+
                             ],
                             "enableCondition": [
                                 {
@@ -357,6 +358,23 @@
                         }
                     },
                     {
+                        "type": "attribute",
+                        "value": {
+                            "name": "retrieveWithLastReplayId",
+                            "displayName": "Enable to retrieve with last replay Id at the server restart",
+                            "inputType": "checkbox",
+                            "defaultValue": "ture",
+                            "required": "false",
+                            "helpTip": "Enable to retrieve with last replay Id at the server restart",
+                            "enableCondition": ["OR",
+                                {"replay_preset": "LATEST"},
+                                {
+                                    "replay_preset": "EARLIEST"
+                                }
+                            ]
+                        }
+                    },
+                    {
                         "type":"attribute",
                         "value":{
                             "name": "subscription_id",
@@ -364,7 +382,7 @@
                             "inputType": "string",
                             "defaultValue": "",
                             "required": "false",
-                            "helpTip": "subscription_id",
+                            "helpTip": "subscription Id",
                             "enableCondition": [
                                 {
                                     "rpcMethod": "Manage Subscribes"

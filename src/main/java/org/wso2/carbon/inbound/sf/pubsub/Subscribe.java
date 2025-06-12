@@ -27,9 +27,11 @@ import org.apache.axis2.AxisFault;
 import org.apache.synapse.MessageContext;
 import org.apache.synapse.SynapseException;
 import org.apache.synapse.commons.json.JsonUtil;
+import org.apache.synapse.config.Entry;
 import org.apache.synapse.core.SynapseEnvironment;
 import org.apache.synapse.core.axis2.Axis2MessageContext;
 import org.apache.synapse.mediators.base.SequenceMediator;
+import org.apache.synapse.registry.AbstractRegistry;
 import org.json.JSONObject;
 import org.wso2.carbon.inbound.sf.pubsub.com.salesforce.eventbus.protobuf.ConsumerEvent;
 import org.wso2.carbon.inbound.sf.pubsub.com.salesforce.eventbus.protobuf.FetchRequest;
@@ -39,6 +41,7 @@ import org.wso2.carbon.inbound.sf.pubsub.com.salesforce.eventbus.protobuf.Replay
 import org.wso2.carbon.inbound.sf.pubsub.com.salesforce.eventbus.protobuf.SchemaRequest;
 
 import java.io.IOException;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -54,6 +57,7 @@ import com.google.protobuf.util.JsonFormat;
 import static org.wso2.carbon.inbound.sf.pubsub.SFConstants.APPLICATION_JSON;
 import static org.wso2.carbon.inbound.sf.pubsub.SFConstants.DECODE_PAYLOAD;
 import static org.wso2.carbon.inbound.sf.pubsub.SFConstants.EVENT;
+import static org.wso2.carbon.inbound.sf.pubsub.SFConstants.REPLAY_ID_PREFIX;
 
 /**
  * This class manages the subscription to the Salesforce Pub/Sub API.
@@ -77,9 +81,17 @@ public class Subscribe {
     private final Map<String, Schema> schemaCache = new ConcurrentHashMap<>();
     private final PubSubGrpc.PubSubBlockingStub blockingStub ;
     private boolean firstRequest = true;
+    private final String filePathForReplayId;
+    private final String inboundName;
+    private final AbstractRegistry registry;
+    private final boolean isRetrieveWithLastReplayId;
+
+
 
     public Subscribe(String topicName, int replayPreset, int numRequested, ByteString replayId,
-                     SynapseEnvironment synapseEnvironment, String injectingSeq, boolean sequential, PubSubGrpc.PubSubBlockingStub blockingStub) {
+                     SynapseEnvironment synapseEnvironment, String injectingSeq, boolean sequential,
+                     PubSubGrpc.PubSubBlockingStub blockingStub, String filePathForReplayId, String inboundName,
+                     boolean isRetrieveWithLastReplayId) {
         this.topicName = topicName;
         this.replayPreset = replayPreset;
         this.numRequested = numRequested;
@@ -88,6 +100,10 @@ public class Subscribe {
         this.injectingSeq = injectingSeq;
         this.sequential = sequential;
         this.blockingStub = blockingStub;
+        this.filePathForReplayId = filePathForReplayId;
+        this.inboundName = inboundName;
+        this.registry = (AbstractRegistry) synapseEnvironment.getSynapseConfiguration().getRegistry();
+        this.isRetrieveWithLastReplayId = isRetrieveWithLastReplayId;
     }
 
     /**
@@ -122,9 +138,11 @@ public class Subscribe {
                             consecutiveEmptyResponses = 0;
                             replayId = response.getLatestReplayId();
                             pendingRequests = response.getPendingNumRequested();
+                            LOGGER.info("Received " + eventsList.size() + " events, latest replay ID: " + replayId.toStringUtf8());
                             // Process the events
                             processEvents(context, eventsList, injectingSeq, sequential);
                         } else {
+                            LOGGER.info("Received empty response, pending requests: " + pendingRequests);
                             consecutiveEmptyResponses++;
                         }
                         // Schedule next fetch request with delay to avoid overwhelming the server
@@ -227,6 +245,17 @@ public class Subscribe {
 
             SequenceMediator seq = (SequenceMediator) synapseEnvironment.getSynapseConfiguration()
                     .getSequence(injectingSeq);
+
+            if (registry != null && isRetrieveWithLastReplayId) {
+                String resourcePath = filePathForReplayId + "/" + inboundName;
+                Object registryResource = registry.getResource(new Entry(resourcePath), null);
+                if (registryResource == null) {
+                    registry.newResource(filePathForReplayId, true);
+                }
+                String newReplayId = Base64.getEncoder().encodeToString(consumerEvent.getReplayId().toByteArray());
+                registry.newNonEmptyResource(resourcePath, false, "text/plain", newReplayId,
+                        REPLAY_ID_PREFIX);
+            }
             if (seq == null) {
                 throw new SynapseException(
                         "Sequence with name : " + injectingSeq + " is not found to mediate the message.");
