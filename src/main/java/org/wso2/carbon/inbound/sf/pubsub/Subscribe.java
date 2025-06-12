@@ -65,7 +65,7 @@ import static org.wso2.carbon.inbound.sf.pubsub.SFConstants.REPLAY_ID_PREFIX;
 public class Subscribe {
     private static final Logger LOGGER = Logger.getLogger(Subscribe.class.getName());
     private static final long FETCH_INTERVAL_SECONDS = 1;
-    private static final long RESOURCE_EXHAUSTED_BACKOFF_SECONDS = 300;
+    private static final long RESOURCE_EXHAUSTED_BACKOFF_SECONDS = 60;
     private static final int MAX_CONSECUTIVE_EMPTY_RESPONSES = 5;
     private final String topicName;
     private final int replayPreset;
@@ -85,7 +85,6 @@ public class Subscribe {
     private final String inboundName;
     private final AbstractRegistry registry;
     private final boolean isRetrieveWithLastReplayId;
-
 
 
     public Subscribe(String topicName, int replayPreset, int numRequested, ByteString replayId,
@@ -138,11 +137,8 @@ public class Subscribe {
                             consecutiveEmptyResponses = 0;
                             replayId = response.getLatestReplayId();
                             pendingRequests = response.getPendingNumRequested();
-                            LOGGER.info("Received " + eventsList.size() + " events, latest replay ID: " + replayId.toStringUtf8());
-                            // Process the events
                             processEvents(context, eventsList, injectingSeq, sequential);
                         } else {
-                            LOGGER.info("Received empty response, pending requests: " + pendingRequests);
                             consecutiveEmptyResponses++;
                         }
                         // Schedule next fetch request with delay to avoid overwhelming the server
@@ -293,7 +289,7 @@ public class Subscribe {
         scheduler.schedule(() -> {
             if (isActive.get()) {
                 try {
-                    LOGGER.info("Attempting to restart subscription after resource exhaustion");
+                    LOGGER.info("Attempting to restart subscription after stream failure.");
                     // Restart the subscription with a new stream
                     subscribe(context, asyncStub);
                     return true;

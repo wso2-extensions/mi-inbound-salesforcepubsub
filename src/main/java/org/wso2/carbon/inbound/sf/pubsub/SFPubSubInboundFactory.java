@@ -86,8 +86,8 @@ public class SFPubSubInboundFactory  extends GenericPollingConsumer {
     private static boolean nextPolling = false;
     private PubSubGrpc.PubSubBlockingStub blockingStub = null;
     private final boolean isRetrieveWithLastReplayId;
-
     private final AbstractRegistry registry;
+
     public SFPubSubInboundFactory(Properties properties, String name, SynapseEnvironment synapseEnvironment,
                                   long scanInterval, String injectingSeq, String onErrorSeq, boolean coordination,
                                   boolean sequential) {

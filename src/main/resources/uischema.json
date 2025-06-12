@@ -330,7 +330,6 @@
                                 "LATEST",
                                 "EARLIEST",
                                 "CUSTOM"
-
                             ],
                             "enableCondition": [
                                 {
@@ -346,7 +345,7 @@
                             "displayName": "Replay Id",
                             "inputType": "string",
                             "defaultValue": "",
-                            "required": "false",
+                            "required": "true",
                             "helpTip": "Replay ID of the event",
                             "enableCondition": ["AND",
                                 {"rpcMethod": "Subscribe"},
@@ -363,7 +362,7 @@
                             "name": "retrieveWithLastReplayId",
                             "displayName": "Enable to retrieve with last replay Id at the server restart",
                             "inputType": "checkbox",
-                            "defaultValue": "ture",
+                            "defaultValue": "true",
                             "required": "false",
                             "helpTip": "Enable to retrieve with last replay Id at the server restart",
                             "enableCondition": ["OR",
