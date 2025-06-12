@@ -1,0 +1,29 @@
+{
+  "name": "Salesforce PubSub",
+  "owner": "WSO2",
+  "product": "MI",
+  "mavenGroupId": "org.wso2.integration.inbound",
+  "mavenArtifactId": "mi-inbound-salesforcepubsub",
+  "rank": 15,
+  "type": "Inbound",
+  "category": "Developer Tools",
+  "documentationUrl": "",
+  "description": "Inbuilt Salesforce Pub/Sub Event Listener",
+  "status": "Active",
+  "labels": [
+    "integration",
+    "communication",
+    "inbound-endpoint"
+  ],
+  "releases": [
+    {
+      "tagName": "v0.1.0",
+      "products": [
+        "MI 4.4.0"
+      ],
+      "operations": [],
+      "connections": [],
+      "isHidden": false
+    }
+  ]
+}
