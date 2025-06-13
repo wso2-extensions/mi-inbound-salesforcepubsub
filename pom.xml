@@ -25,20 +25,20 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.wso2.integration.inbound</groupId>
-    <artifactId>mi-inbound-salesforce-pubsub</artifactId>
+    <artifactId>mi-inbound-salesforcepubsub</artifactId>
     <version>0.1.0-SNAPSHOT</version>
-    <packaging>bundle</packaging>
     <name>WSO2 Micro Integrator - PubSub Inbound Endpoint</name>
     <url>http://wso2.org</url>
 
     <properties>
-        <connector.name>mi-inbound-salesforce-pubsub</connector.name>
+        <connector.name>mi-inbound-salesforcepubsub</connector.name>
         <synapse.version>4.0.0-wso2v154</synapse.version>
         <carbon.mediation.version>4.7.175</carbon.mediation.version>
         <protobuf.version>3.21.12</protobuf.version>
         <grpc.version>1.70.0</grpc.version>
         <java.version>1.8</java.version>
         <avro.version>1.11.0</avro.version>
+        <maven-shade-plugin.version>3.4.1</maven-shade-plugin.version>
     </properties>
 
     <dependencies>
@@ -83,6 +83,14 @@
         </dependency>
         <dependency>
             <groupId>io.grpc</groupId>
+            <artifactId>grpc-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-protobuf-lite</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
             <artifactId>grpc-all</artifactId>
         </dependency>
         <!-- Java EE API -->
@@ -117,13 +125,19 @@
             <dependency>
                 <groupId>io.grpc</groupId>
                 <artifactId>grpc-bom</artifactId>
-                <version>1.70.0</version>  <!-- or whatever single version you need -->
+                <version>1.70.0</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
-
+    <scm>
+        <connection>scm:git:https://github.com/wso2-extensions/mi-inbound-salesforcepubsub.git</connection>
+        <url>https://github.com/wso2-extensions/mi-inbound-salesforcepubsub.git</url>
+        <developerConnection>scm:git:https://github.com/wso2-extensions/mi-inbound-salesforcepubsub
+        </developerConnection>
+        <tag>HEAD</tag>
+    </scm>
     <build>
         <plugins>
             <!-- Compiler Plugin -->
@@ -136,6 +150,71 @@
                     <target>${java.version}</target>
                     <encoding>UTF-8</encoding>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>${maven-shade-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <shadedArtifactAttached>false</shadedArtifactAttached>
+                            <outputFile>${project.build.directory}/${project.build.finalName}.jar</outputFile>
+                            <artifactSet>
+                                <includes>
+                                    <include>io.grpc:grpc-netty-shaded</include>
+                                    <include>io.grpc:grpc-protobuf</include>
+                                    <include>io.grpc:grpc-stub</include>
+                                    <include>io.grpc:grpc-core</include>
+                                    <include>io.grpc:grpc-all</include>
+                                    <include>io.grpc:grpc-api</include>`
+                                    <include>io.perfmark:perfmark-api</include>
+                                    <include>io.grpc:grpc-protobuf-lite</include>
+                                    <include>com.google.protobuf:protobuf-java</include>
+                                    <include>com.google.protobuf:protobuf-java-util</include>
+                                    <include>org.apache.avro:avro</include>
+                                </includes>
+                            </artifactSet>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                            <transformers>
+                                <!-- Merge service files -->
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                            </transformers>
+                            <relocations>
+                                <relocation>
+                                    <pattern>io.grpc</pattern>
+                                    <shadedPattern>io.grpc.wso2.shaded</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>io.perfmark</pattern>
+                                    <shadedPattern>io.perfmark.wso2.shaded</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.protobuf</pattern>
+                                    <shadedPattern>com.google.protobuf.wso2.shaded</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.apache.avro</pattern>
+                                    <shadedPattern>org.apache.avro.wso2.shaded</shadedPattern>
+                                </relocation>
+                            </relocations>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
             <!-- Assembly Plugin -->
@@ -161,39 +240,6 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <version>5.1.8</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <instructions>
-                        <_nouse.jdk.javac>true</_nouse.jdk.javac>
-                        <Import-Package>
-                            io.grpc.*,
-                            com.google.protobuf.*,
-                            org.wso2.carbon.*,
-                            org.apache.synapse.*,
-                            *
-                        </Import-Package>
-                        <Embed-Dependency>
-                            perfmark-api;scope=compile|runtime,
-                            protobuf-java;scope=compile|runtime,
-                            grpc-protobuf;scope=compile|runtime,
-                            grpc-stub;scope=compile|runtime,
-                            grpc-api;scope=compile|runtime,
-                            grpc-core;scope=compile|runtime,
-                            grpc-netty-shaded;scope=compile|runtime
-                        </Embed-Dependency>
-                        <Export-Package>
-                            !com.google.protobuf.*,
-                            io.grpc.*;-split-package:=merge-first
-                        </Export-Package>
-                        <Include-Resource>{maven-resources},META-INF/services=target/classes/META-INF/services</Include-Resource>
-                        <_includeresource>META-INF/services=target/classes/META-INF/services</_includeresource>
-                    </instructions>
-                </configuration>
             </plugin>
         </plugins>
     </build>
@@ -223,5 +269,4 @@
             <url>https://maven.wso2.org/nexus/content/repositories/snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
-
 </project>

@@ -17,21 +17,15 @@
  */
 package org.wso2.carbon.inbound.sf.pubsub;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.ByteString;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericDatumReader;
-import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.DecoderFactory;
-import org.apache.avro.io.Encoder;
-import org.apache.avro.io.EncoderFactory;
-import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class SFPubSubInboundUtils {
@@ -43,10 +37,5 @@ public class SFPubSubInboundUtils {
         ByteArrayInputStream in = new ByteArrayInputStream(payload.toByteArray());
         BinaryDecoder decoder = DecoderFactory.get().directBinaryDecoder(in, null);
         return reader.read(null, decoder);
-    }
-
-    public static JSONObject convertToJSONObject(GenericRecord record) {
-        ObjectMapper mapper = new ObjectMapper();
-        return new JSONObject(mapper.convertValue(record, java.util.Map.class));
     }
 }

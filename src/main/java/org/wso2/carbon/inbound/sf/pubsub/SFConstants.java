@@ -37,4 +37,7 @@ public class SFConstants {
     public static final String RPC_METHOD = "rpcMethod";
     public static final String SUBSCRIPTION_ID = "subscription_id";
     public static final String DEVELOPER_NAME = "developer_name";
+    public static final String REGISTRY_PATH = "connector/salesforcepubsub";
+    public static final String REPLAY_ID_PREFIX = "replayId=";
+    public static final String RETRIEVE_WITH_LAST_REPLAY_ID = "retrieveWithLastReplayId";
 }
