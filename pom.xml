@@ -125,13 +125,19 @@
             <dependency>
                 <groupId>io.grpc</groupId>
                 <artifactId>grpc-bom</artifactId>
-                <version>1.70.0</version>  <!-- or whatever single version you need -->
+                <version>1.70.0</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
-
+    <scm>
+        <connection>scm:git:https://github.com/wso2-extensions/mi-inbound-salesforcepubsub.git</connection>
+        <url>https://github.com/wso2-extensions/mi-inbound-salesforcepubsub.git</url>
+        <developerConnection>scm:git:https://github.com/wso2-extensions/mi-inbound-salesforcepubsub
+        </developerConnection>
+        <tag>HEAD</tag>
+    </scm>
     <build>
         <plugins>
             <!-- Compiler Plugin -->

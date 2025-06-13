@@ -1,423 +1,436 @@
 {
-    "id": "org.wso2.carbon.inbound.sf.pubsub.SFPubSubInboundFactory",
-    "name": "salesforcePubSubInbound",
-    "type": "event-integration",
-    "title": "Salesforce PubSub Inbound Endpoint",
-    "help": "Subscribe",
-    "elements": [
-        {
+  "id": "org.wso2.carbon.inbound.sf.pubsub.SFPubSubInboundFactory",
+  "name": "salesforcePubSubInbound",
+  "type": "event-integration",
+  "title": "Salesforce PubSub Inbound Endpoint",
+  "help": "Subscribe",
+  "elements": [
+    {
+      "type": "attributeGroup",
+      "value": {
+        "groupName": "Generic",
+        "elements": [
+          {
+            "type": "attribute",
+            "value": {
+              "name": "name",
+              "displayName": "Event Integration Name",
+              "inputType": "string",
+              "required": "true",
+              "helpTip": "Unique identifier for the Salesforce pubsub event integration."
+            }
+          },
+          {
+            "type": "attribute",
+            "value": {
+              "name": "class",
+              "displayName": "Class Name",
+              "inputType": "string",
+              "required": "true",
+              "hidden": true,
+              "defaultValue": "org.wso2.carbon.inbound.sf.pubsub.SFPubSubInboundFactory"
+            }
+          },
+          {
+            "type": "attribute",
+            "value": {
+              "name": "generateSequences",
+              "displayName": "Automatically generate sequences",
+              "inputType": "checkbox",
+              "defaultValue": true
+            }
+          },
+          {
+            "type": "attribute",
+            "value": {
+              "name": "sequence",
+              "displayName": "Injecting Sequence Name",
+              "inputType": "keyOrExpression",
+              "keyType": "sequence",
+              "required": "true",
+              "enableCondition": [
+                {
+                  "generateSequences": false
+                }
+              ],
+              "helpTip": "Sequence to inject the Salesforce pubsub message"
+            }
+          },
+          {
+            "type": "attribute",
+            "value": {
+              "name": "onError",
+              "displayName": "Error Sequence Name",
+              "inputType": "keyOrExpression",
+              "keyType": "sequence",
+              "required": "true",
+              "enableCondition": [
+                {
+                  "generateSequences": false
+                }
+              ],
+              "helpTip": "Error sequence to invoke on fault"
+            }
+          },
+          {
+            "type": "attribute",
+            "value": {
+              "name": "suspend",
+              "displayName": "Suspend Inbound",
+              "inputType": "boolean",
+              "defaultValue": false,
+              "hidden": true,
+              "required": "false",
+              "helpTip": "Suspend Inbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "attributeGroup",
+      "value": {
+        "groupName": "Inbound Functional",
+        "elements": [
+          {
+            "type": "attribute",
+            "value": {
+              "name": "interval",
+              "displayName": "Polling interval",
+              "inputType": "string",
+              "required": true,
+              "helpTip": "The polling interval for the Salesforce pub/sub inbound endpoint in milliseconds.",
+              "defaultValue": "100"
+            }
+          },
+          {
+            "type": "attribute",
+            "value": {
+              "name": "sequential",
+              "displayName": "Execute sequentially",
+              "inputType": "boolean",
+              "defaultValue": true,
+              "required": "false",
+              "helpTip": "The behaviour when executing the given sequence."
+            }
+          },
+          {
+            "type": "attribute",
+            "value": {
+              "name": "coordination",
+              "displayName": "Coordination",
+              "inputType": "boolean",
+              "defaultValue": true,
+              "required": "false",
+              "helpTip": "In a clustered setup, this will run the inbound only in a single worker node."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "attributeGroup",
+      "value": {
+        "groupName": "Connection Configuration",
+        "elements": [
+          {
             "type": "attributeGroup",
             "value": {
-                "groupName": "Generic",
-                "elements": [
-                    {
-                        "type": "attribute",
-                        "value": {
-                            "name": "name",
-                            "displayName": "Event Integration Name",
-                            "inputType": "string",
-                            "required": "true",
-                            "helpTip": "Unique identifier for the Salesforce pubsub event integration."
-                        }
-                    },
-                    {
-                        "type": "attribute",
-                        "value": {
-                            "name": "class",
-                            "displayName": "Class Name",
-                            "inputType": "string",
-                            "required": "true",
-                            "hidden": true,
-                            "defaultValue": "org.wso2.carbon.inbound.sf.pubsub.SFPubSubInboundFactory"
-                        }
-                    },
-                    {
-                        "type": "attribute",
-                        "value": {
-                            "name": "generateSequences",
-                            "displayName": "Automatically generate sequences",
-                            "inputType": "checkbox",
-                            "defaultValue": true
-                        }
-                    },
-                    {
-                        "type": "attribute",
-                        "value": {
-                            "name": "sequence",
-                            "displayName": "Injecting Sequence Name",
-                            "inputType": "keyOrExpression",
-                            "keyType": "sequence",
-                            "required": "true",
-                            "enableCondition": [{"generateSequences":false}],
-                            "helpTip": "Sequence to inject the Salesforce pubsub message"
-                        }
-                    },
-                    {
-                        "type": "attribute",
-                        "value": {
-                            "name": "onError",
-                            "displayName": "Error Sequence Name",
-                            "inputType": "keyOrExpression",
-                            "keyType": "sequence",
-                            "required": "true",
-                            "enableCondition": [{"generateSequences":false}],
-                            "helpTip": "Error sequence to invoke on fault"
-                        }
-                    },
-                    {
-                        "type": "attribute",
-                        "value": {
-                            "name": "suspend",
-                            "displayName": "Suspend Inbound",
-                            "inputType": "boolean",
-                            "defaultValue": false,
-                            "hidden": true,
-                            "required": "false",
-                            "helpTip": "Suspend Inbound"
-                        }
-                    }
-                ]
+              "groupName": "Salesforce PubSub Basic",
+              "elements": [
+                {
+                  "type": "attribute",
+                  "value": {
+                    "name": "server",
+                    "displayName": "Server URL",
+                    "inputType": "string",
+                    "defaultValue": "api.pubsub.salesforce.com",
+                    "required": "true",
+                    "helpTip": "The service root URL."
+                  }
+                },
+                {
+                  "type": "attribute",
+                  "value": {
+                    "name": "port",
+                    "displayName": "Port",
+                    "inputType": "string",
+                    "match Pattern": "^\\d+$",
+                    "defaultValue": "7443",
+                    "required": true,
+                    "helpTip": "The port for the root URL."
+                  }
+                }
+              ]
             }
-        },
-        {
+          },
+          {
             "type": "attributeGroup",
             "value": {
-                "groupName": "Inbound Functional",
-                "elements": [
-                    {
+              "groupName": "Authentication Details",
+              "elements": [
+                {
+                  "type": "attribute",
+                  "value": {
+                    "name": "tlsEnabled",
+                    "displayName": "Enable TLS",
+                    "inputType": "checkbox",
+                    "defaultValue": "false",
+                    "required": "false",
+                    "helpTip": "Enable TLS security"
+                  }
+                },
+                {
+                  "type": "attribute",
+                  "value": {
+                    "name": "authType",
+                    "displayName": "Authentication Type",
+                    "inputType": "combo",
+                    "defaultValue": "None",
+                    "required": "true",
+                    "helpTip": "The authentication type for the connection.",
+                    "comboValues": [
+                      "None",
+                      "Basic Auth"
+                    ]
+                  }
+                },
+                {
+                  "type": "attribute",
+                  "value": {
+                    "name": "username",
+                    "displayName": "Username",
+                    "inputType": "string",
+                    "defaultValue": "",
+                    "required": "true",
+                    "helpTip": "The username for the connection.",
+                    "enableCondition": [
+                      {
+                        "authType": "Basic Auth"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "attribute",
+                  "value": {
+                    "name": "password",
+                    "displayName": "Password",
+                    "inputType": "string",
+                    "defaultValue": "",
+                    "required": "true",
+                    "helpTip": "The password for the connection.",
+                    "enableCondition": [
+                      {
+                        "authType": "Basic Auth"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "attribute",
+                  "value": {
+                    "name": "securityToken",
+                    "displayName": "Security Token",
+                    "inputType": "string",
+                    "defaultValue": "",
+                    "required": "true",
+                    "helpTip": "The security token for the connection.",
+                    "enableCondition": [
+                      {
+                        "authType": "Basic Auth"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "table",
+                  "value": {
+                    "name": "headers",
+                    "displayName": "Headers",
+                    "tableKey": "propertyName",
+                    "tableValue": "propertyValue",
+                    "helpTip": "Add headers to the connection in JSON format.",
+                    "enableCondition": [
+                      {
+                        "authType": "None"
+                      }
+                    ],
+                    "elements": [
+                      {
                         "type": "attribute",
                         "value": {
-                            "name": "interval",
-                            "displayName": "Polling interval",
-                            "inputType": "string",
-                            "required": true,
-                            "helpTip": "The polling interval for the Salesforce pub/sub inbound endpoint in milliseconds.",
-                            "defaultValue": "100"
+                          "name": "propertyName",
+                          "displayName": "Header Name",
+                          "inputType": "string",
+                          "defaultValue": "",
+                          "required": "true",
+                          "helpTip": "The name of the header."
                         }
-                    },
-                    {
+                      },
+                      {
                         "type": "attribute",
                         "value": {
-                            "name": "sequential",
-                            "displayName": "Execute sequentially",
-                            "inputType": "boolean",
-                            "defaultValue": true,
-                            "required": "false",
-                            "helpTip": "The behaviour when executing the given sequence."
+                          "name": "propertyValue",
+                          "displayName": "Header Value",
+                          "inputType": "string",
+                          "defaultValue": "",
+                          "required": "true",
+                          "helpTip": "The value of the header."
                         }
-                    },
-                    {
-                        "type": "attribute",
-                        "value": {
-                            "name": "coordination",
-                            "displayName": "Coordination",
-                            "inputType": "boolean",
-                            "defaultValue": true,
-                            "required": "false",
-                            "helpTip": "In a clustered setup, this will run the inbound only in a single worker node."
-                        }
-                    }
-                ]
+                      }
+                    ]
+                  }
+                }
+              ]
             }
-        },
-        {
-            "type": "attributeGroup",
+          }
+        ]
+      }
+    },
+    {
+      "type": "attributeGroup",
+      "value": {
+        "groupName": "Subscribe Operation Configuration",
+        "elements": [
+          {
+            "type": "attribute",
             "value": {
-                "groupName": "Connection Configuration",
-                "elements": [
-                    {
-                        "type": "attributeGroup",
-                        "value": {
-                            "groupName": "Salesforce PubSub Basic",
-                            "elements": [
-                                {
-                                    "type": "attribute",
-                                    "value": {
-                                        "name": "server",
-                                        "displayName": "Server URL",
-                                        "inputType": "string",
-                                        "defaultValue": "api.pubsub.salesforce.com",
-                                        "required": "true",
-                                        "helpTip": "The service root URL."
-                                    }
-                                },
-                                {
-                                    "type": "attribute",
-                                    "value": {
-                                        "name": "port",
-                                        "displayName": "Port",
-                                        "inputType": "string",
-                                        "match Pattern": "^\\d+$",
-                                        "defaultValue": "7443",
-                                        "required": true,
-                                        "helpTip": "The port for the root URL."
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        "type": "attributeGroup",
-                        "value": {
-                            "groupName": "Authentication Details",
-                            "elements": [
-                                {
-                                    "type": "attribute",
-                                    "value": {
-                                        "name": "tlsEnabled",
-                                        "displayName": "Enable TLS",
-                                        "inputType": "checkbox",
-                                        "defaultValue": "false",
-                                        "required": "false",
-                                        "helpTip": "Enable TLS security"
-                                    }
-                                },
-                                {
-                                    "type": "attribute",
-                                    "value": {
-                                        "name": "authType",
-                                        "displayName": "Authentication Type",
-                                        "inputType": "combo",
-                                        "defaultValue": "None",
-                                        "required": "true",
-                                        "helpTip": "The authentication type for the connection.",
-                                        "comboValues": [
-                                            "None",
-                                            "Basic Auth"
-                                        ]
-                                    }
-                                },
-                                {
-                                    "type": "attribute",
-                                    "value": {
-                                        "name": "username",
-                                        "displayName": "Username",
-                                        "inputType": "string",
-                                        "defaultValue": "",
-                                        "required": "true",
-                                        "helpTip": "The username for the connection.",
-                                        "enableCondition": [
-                                            {
-                                                "authType": "Basic Auth"
-                                            }
-                                        ]
-                                    }
-                                },
-                                {
-                                    "type": "attribute",
-                                    "value": {
-                                        "name": "password",
-                                        "displayName": "Password",
-                                        "inputType": "string",
-                                        "defaultValue": "",
-                                        "required": "true",
-                                        "helpTip": "The password for the connection.",
-                                        "enableCondition": [
-                                            {
-                                                "authType": "Basic Auth"
-                                            }
-                                        ]
-                                    }
-                                },
-                                {
-                                    "type": "attribute",
-                                    "value": {
-                                        "name": "securityToken",
-                                        "displayName": "Security Token",
-                                        "inputType": "string",
-                                        "defaultValue": "",
-                                        "required": "true",
-                                        "helpTip": "The security token for the connection.",
-                                        "enableCondition": [
-                                            {
-                                                "authType": "Basic Auth"
-                                            }
-                                        ]
-                                    }
-                                },
-                                {
-                                    "type": "table",
-                                    "value": {
-                                        "name": "headers",
-                                        "displayName": "Headers",
-                                        "tableKey": "propertyName",
-                                        "tableValue": "propertyValue",
-                                        "helpTip": "Add headers to the connection in JSON format.",
-                                        "enableCondition": [
-                                            {
-                                                "authType": "None"
-                                            }
-                                        ],
-                                        "elements": [
-                                            {
-                                                "type": "attribute",
-                                                "value": {
-                                                    "name": "propertyName",
-                                                    "displayName": "Header Name",
-                                                    "inputType": "string",
-                                                    "defaultValue": "",
-                                                    "required": "true",
-                                                    "helpTip": "The name of the header."
-                                                }
-                                            },
-                                            {
-                                                "type": "attribute",
-                                                "value": {
-                                                    "name": "propertyValue",
-                                                    "displayName": "Header Value",
-                                                    "inputType": "string",
-                                                    "defaultValue": "",
-                                                    "required": "true",
-                                                    "helpTip": "The value of the header."
-                                                }
-                                            }
-                                        ]
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                ]
+              "name": "rpcMethod",
+              "displayName": "Select endpoint Type",
+              "inputType": "combo",
+              "defaultValue": "Subscribe",
+              "required": "true",
+              "helpTip": "The operation to perform on the Salesforce pubsub endpoint. Select 'Subscribe' to subscribe to a topic or 'Manage Subscribes' to manage existing subscriptions.",
+              "comboValues": [
+                "Subscribe",
+                "Manage Subscribes"
+              ],
+              "hidden": true
             }
-        },
-        {
-            "type": "attributeGroup",
+          },
+          {
+            "type": "attribute",
             "value": {
-                "groupName": "Subscribe Operation Configuration",
-                "elements": [
-                    {
-                        "type": "attribute",
-                        "value": {
-                            "name": "rpcMethod",
-                            "displayName": "Select endpoint Type",
-                            "inputType": "combo",
-                            "defaultValue": "Subscribe",
-                            "required": "true",
-                            "helpTip": "The operation to perform on the Salesforce pubsub endpoint. Select 'Subscribe' to subscribe to a topic or 'Manage Subscribes' to manage existing subscriptions.",
-                            "comboValues": [
-                                "Subscribe",
-                                "Manage Subscribes"
-                            ],
-                            "hidden": true
-                        }
-                    },
-                    {
-                        "type": "attribute",
-                        "value": {
-                            "name": "topic_name",
-                            "displayName": "Topic Name",
-                            "inputType": "string",
-                            "defaultValue": "",
-                            "required": "true",
-                            "helpTip": "A topic for subscription",
-                            "enableCondition": [
-                                {
-                                    "rpcMethod": "Subscribe"
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        "type": "attribute",
-                        "value": {
-                            "name": "replay_preset",
-                            "displayName": "Replay Preset",
-                            "inputType": "combo",
-                            "defaultValue": "LATEST",
-                            "required": "true",
-                            "helpTip": "Supported subscription replay start values",
-                            "comboValues": [
-                                "LATEST",
-                                "EARLIEST",
-                                "CUSTOM"
-                            ],
-                            "enableCondition": [
-                                {
-                                    "rpcMethod": "Subscribe"
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        "type": "attribute",
-                        "value": {
-                            "name": "replay_id",
-                            "displayName": "Replay Id",
-                            "inputType": "string",
-                            "defaultValue": "",
-                            "required": "true",
-                            "helpTip": "Replay ID of the event",
-                            "enableCondition": ["AND",
-                                {"rpcMethod": "Subscribe"},
-                                {
-                                    "replay_preset": "CUSTOM"
-                                }
-                            ]
-
-                        }
-                    },
-                    {
-                        "type": "attribute",
-                        "value": {
-                            "name": "retrieveWithLastReplayId",
-                            "displayName": "Enable to retrieve with last replay Id at the server restart",
-                            "inputType": "checkbox",
-                            "defaultValue": "true",
-                            "required": "false",
-                            "helpTip": "Enable to retrieve with last replay Id at the server restart",
-                            "enableCondition": ["OR",
-                                {"replay_preset": "LATEST"},
-                                {
-                                    "replay_preset": "EARLIEST"
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        "type":"attribute",
-                        "value":{
-                            "name": "subscription_id",
-                            "displayName": "Subscription Id",
-                            "inputType": "string",
-                            "defaultValue": "",
-                            "required": "false",
-                            "helpTip": "subscription Id",
-                            "enableCondition": [
-                                {
-                                    "rpcMethod": "Manage Subscribes"
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        "type":"attribute",
-                        "value":{
-                            "name": "developer_name",
-                            "displayName": "Developer Name",
-                            "inputType": "string",
-                            "defaultValue": "",
-                            "required": "false",
-                            "helpTip": "developer_name",
-                            "enableCondition": [
-                                {
-                                    "rpcMethod": "Manage Subscribes"
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        "type":"attribute",
-                        "value":{
-                            "name": "num_requested",
-                            "displayName": "Number of Messages Requested",
-                            "inputType": "string",
-                            "defaultValue": "",
-                            "required": "true",
-                            "helpTip": "100 is the maximum number of messages requested"
-                        }
-                    }
-                ]
+              "name": "topic_name",
+              "displayName": "Topic Name",
+              "inputType": "string",
+              "defaultValue": "",
+              "required": "true",
+              "helpTip": "A topic for subscription",
+              "enableCondition": [
+                {
+                  "rpcMethod": "Subscribe"
+                }
+              ]
             }
-        }
-    ]
+          },
+          {
+            "type": "attribute",
+            "value": {
+              "name": "replay_preset",
+              "displayName": "Replay Preset",
+              "inputType": "combo",
+              "defaultValue": "LATEST",
+              "required": "true",
+              "helpTip": "The starting point for retrieving events when the subscription connects.",
+              "comboValues": [
+                "LATEST",
+                "EARLIEST",
+                "CUSTOM"
+              ],
+              "enableCondition": [
+                {
+                  "rpcMethod": "Subscribe"
+                }
+              ]
+            }
+          },
+          {
+            "type": "attribute",
+            "value": {
+              "name": "replay_id",
+              "displayName": "Replay Id",
+              "inputType": "string",
+              "defaultValue": "",
+              "required": "true",
+              "helpTip": "Replay ID of the event",
+              "enableCondition": [
+                "AND",
+                {
+                  "rpcMethod": "Subscribe"
+                },
+                {
+                  "replay_preset": "CUSTOM"
+                }
+              ]
+            }
+          },
+          {
+            "type": "attribute",
+            "value": {
+              "name": "retrieveWithLastReplayId",
+              "displayName": "Enable replay ID persistence",
+              "inputType": "checkbox",
+              "defaultValue": "true",
+              "required": "false",
+              "helpTip": "This option to store and reuse the last processed replay ID, ensuring continuity across server restarts",
+              "enableCondition": [
+                "OR",
+                {
+                  "replay_preset": "LATEST"
+                },
+                {
+                  "replay_preset": "EARLIEST"
+                }
+              ]
+            }
+          },
+          {
+            "type": "attribute",
+            "value": {
+              "name": "subscription_id",
+              "displayName": "Subscription Id",
+              "inputType": "string",
+              "defaultValue": "",
+              "required": "false",
+              "helpTip": "subscription Id",
+              "enableCondition": [
+                {
+                  "rpcMethod": "Manage Subscribes"
+                }
+              ]
+            }
+          },
+          {
+            "type": "attribute",
+            "value": {
+              "name": "developer_name",
+              "displayName": "Developer Name",
+              "inputType": "string",
+              "defaultValue": "",
+              "required": "false",
+              "helpTip": "developer_name",
+              "enableCondition": [
+                {
+                  "rpcMethod": "Manage Subscribes"
+                }
+              ]
+            }
+          },
+          {
+            "type": "attribute",
+            "value": {
+              "name": "num_requested",
+              "displayName": "Number of Messages Requested",
+              "inputType": "string",
+              "defaultValue": "",
+              "required": "true",
+              "helpTip": "100 is the maximum number of messages requested"
+            }
+          }
+        ]
+      }
+    }
+  ]
 }
