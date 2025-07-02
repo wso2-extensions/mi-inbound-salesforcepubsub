@@ -1,5 +1,5 @@
 {
-  "name": "Salesforce PubSub",
+  "name": "Salesforce Pub/Sub (Inbound)",
   "owner": "WSO2",
   "product": "MI",
   "mavenGroupId": "org.wso2.integration.inbound",
@@ -7,7 +7,7 @@
   "rank": 15,
   "type": "Inbound",
   "category": "Developer Tools",
-  "documentationUrl": "",
+  "documentationUrl": "https://mi.docs.wso2.com/en/latest/reference/connectors/sf-pubsub-inbound/sf-pubsub-inbound-endpoint-example/",
   "description": "Inbuilt Salesforce Pub/Sub Event Listener",
   "status": "Active",
   "labels": [
