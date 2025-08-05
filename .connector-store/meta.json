@@ -8,7 +8,7 @@
     "type": "Inbound",
     "category": "Developer Tools",
     "documentationUrl": "",
-    "description": "Inbuilt Salesforce Pub/Sub Event Listener",
+    "description": "Salesforce Pub/Sub Event Listener",
     "status": "Active",
     "labels": [
         "integration",
