@@ -1,5 +1,5 @@
 {
-    "name": "Salesforce PubSub",
+    "name": "Salesforce PubSub (Inbound)",
     "owner": "WSO2",
     "product": "MI",
     "mavenGroupId": "org.wso2.integration.inbound",
